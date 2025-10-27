@@ -2,7 +2,6 @@ import { PersonasGateway } from '../../infrastructure/gateways/PersonasGateway';
 import { CoreGateway } from '../../infrastructure/gateways/CoreGateway';
 import { ClassDTO, EventDTO } from '../../shared/dto';
 import { logger } from '../../infrastructure/logger';
-import { log } from 'console';
 
 export class GetClassDetailsUseCase {
   private personasGateway: PersonasGateway;
