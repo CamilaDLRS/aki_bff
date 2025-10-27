@@ -10,6 +10,8 @@ info:
     Authentication: none for MVP. Teacher identification is done through the `X-Teacher-Email` header.
 
 servers:
+  - url: https://aki-bff-h9cjg7hpfzc9fggh.eastus2-01.azurewebsites.net
+    description: Deployed BFF server
   - url: http://localhost:3003
     description: Local BFF server
 
