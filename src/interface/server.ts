@@ -20,6 +20,7 @@ import { getEventDetails } from './controllers/eventDetailsController';
 import { registerAttendance } from './controllers/attendanceController';
 import { deleteStudentDevice } from './controllers/studentDeviceController';
 import { teacherLogin, teacherRecoverPassword } from './controllers/authController';
+import { createEvent } from './controllers/createEventController';
 
 // 1. List teacher’s classes
 app.get('/teachers/:teacherEmail/classes', listTeacherClasses);
@@ -32,6 +33,9 @@ app.get('/classes/:classId/events', listClassEvents);
 
 // 4. Get event details with attendance list
 app.get('/events/:eventId', getEventDetails);
+
+// 4b. Create event
+app.post('/events', createEvent);
 
 // 5. Register attendance (no eventId in URL)
 app.post('/events/attendance', registerAttendance);

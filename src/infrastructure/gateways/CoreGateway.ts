@@ -26,4 +26,15 @@ export class CoreGateway {
   async getEventFromQrToken(qrToken: string) {
     return axios.get(`${this.baseUrl}/v1/events/by-qr`, { params: { qr_token: qrToken } });
   }
+
+  async createEvent(payload: {
+    class_id: number;
+    teacher_id: number;
+    start_time: string;
+    end_time: string;
+    location: { latitude: number; longitude: number };
+  }) {
+    // Core spec: POST /events returns 201 + Event
+    return axios.post(`${this.baseUrl}/events`, payload);
+  }
 }

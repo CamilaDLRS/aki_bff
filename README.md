@@ -36,6 +36,7 @@ This service aggregates data from the Personas and Core microservices to deliver
 | GET /events/{eventId} | Core: `/events/{eventId}`<br>Core: `/attendances?event_id={eventId}`<br>Personas: `/classes/{classId}/students` |
 | POST /events/{eventId}/attendance | Core: `POST /attendances` |
 | POST/DELETE /students/{studentId}/device | Personas: `PATCH /students/{id}` |
+| POST /events | Core: `POST /events` |
 
 ## Example Request/Response
 
@@ -73,3 +74,33 @@ docker-compose up --build
 
 ---
 For details on endpoint orchestration, see the BFF OpenAPI spec in `bff.yaml`.
+
+### Create Event
+Request:
+```
+POST /events
+Content-Type: application/json
+
+{
+   "classId": 42,
+   "teacherId": 9,
+   "startAt": "2025-11-08T13:00:00Z",
+   "endAt": "2025-11-08T14:00:00Z",
+   "location": { "latitude": -23.55052, "longitude": -46.633308 }
+}
+```
+Response (201):
+```
+{
+   "id": "6741e1e93f8c2c5e8c1d0abc",
+   "classId": 42,
+   "teacherId": 9,
+   "startAt": "2025-11-08T13:00:00Z",
+   "endAt": "2025-11-08T14:00:00Z",
+   "status": "active",
+   "location": { "latitude": -23.55052, "longitude": -46.633308 },
+   "qrToken": "eyJhbGciOi...",
+   "createdAt": "2025-11-08T12:55:00Z",
+   "updatedAt": "2025-11-08T12:55:00Z"
+}
+```

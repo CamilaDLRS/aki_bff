@@ -78,6 +78,28 @@ components:
         status:
           type: string
           enum: [scheduled, active, finished]
+        teacherId: { type: integer }
+        location:
+          type: object
+          properties:
+            latitude: { type: number }
+            longitude: { type: number }
+        qrToken: { type: string }
+
+    EventCreate:
+      type: object
+      properties:
+        classId: { type: integer }
+        teacherId: { type: integer }
+        startAt: { type: string, format: date-time }
+        endAt: { type: string, format: date-time }
+        location:
+          type: object
+          required: [latitude, longitude]
+          properties:
+            latitude: { type: number }
+            longitude: { type: number }
+      required: [classId, teacherId, startAt, endAt, location]
 
     AttendanceRecord:
       type: object
@@ -337,6 +359,39 @@ paths:
                 $ref: '#/components/schemas/AttendanceRecord'
         '400':
           description: Error response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /events:
+    post:
+      summary: Create a new event (generates QR token)
+      description: |
+        Creates an event for a class and returns the generated QR token used for attendance scanning.
+        **Orchestration:** Core → `POST /events`
+      tags: [Events]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventCreate'
+      responses:
+        '201':
+          description: Event created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '400':
+          description: Invalid payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict (overlapping event)
           content:
             application/json:
               schema:
