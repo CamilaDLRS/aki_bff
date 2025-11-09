@@ -29,7 +29,7 @@ export class CreateEventUseCase {
         end_time: input.endAt,
         location: input.location,
       };
-  console.log('[CreateEvent] Sending to Core:', payload);
+
       const res = await this.coreGateway.createEvent(payload);
       const e = res.data?.data || res.data; // depending on core response envelope
       const event: EventDTO = {
