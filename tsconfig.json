@@ -7,7 +7,14 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": "src",
+    "paths": {
+      "@features/*": ["features/*"],
+      "@shared/*": ["shared/*"],
+      "@infrastructure/*": ["infrastructure/*"]
+    },
+    "moduleResolution": "node"
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]
