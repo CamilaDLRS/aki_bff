@@ -12,42 +12,39 @@ app.use(express.json());
 import swaggerRouter from './swagger';
 app.use(swaggerRouter);
 
+// Import controllers from features
+import { listTeacherClassesController, getClassDetailsController } from '../features/classes';
+import { listClassEventsController, getEventDetailsController, createEventController } from '../features/events';
+import { registerAttendanceController } from '../features/attendance';
+import { deleteStudentDeviceController } from '../features/students';
+import { teacherLoginController, recoverPasswordController } from '../features/teachers';
 
-import { listTeacherClasses } from './controllers/classesController';
-import { getClassDetails } from './controllers/classDetailsController';
-import { listClassEvents } from './controllers/classEventsController';
-import { getEventDetails } from './controllers/eventDetailsController';
-import { registerAttendance } from './controllers/attendanceController';
-import { deleteStudentDevice } from './controllers/studentDeviceController';
-import { teacherLogin, teacherRecoverPassword } from './controllers/authController';
-import { createEvent } from './controllers/createEventController';
-
-// 1. List teacher’s classes
-app.get('/teachers/:teacherEmail/classes', listTeacherClasses);
+// 1. List teacher's classes
+app.get('/teachers/:teacherEmail/classes', listTeacherClassesController);
 
 // 2. Retrieve class details with recent events
-app.get('/classes/:classId', getClassDetails);
+app.get('/classes/:classId', getClassDetailsController);
 
 // 3. List events of a class
-app.get('/classes/:classId/events', listClassEvents);
+app.get('/classes/:classId/events', listClassEventsController);
 
 // 4. Get event details with attendance list
-app.get('/events/:eventId', getEventDetails);
+app.get('/events/:eventId', getEventDetailsController);
 
 // 4b. Create event
-app.post('/events', createEvent);
+app.post('/events', createEventController);
 
 // 5. Register attendance (no eventId in URL)
-app.post('/events/attendance', registerAttendance);
+app.post('/events/attendance', registerAttendanceController);
 
-// 6. Delete a student’s device association
-app.delete('/students/:studentId/device', deleteStudentDevice);
+// 6. Delete a student's device association
+app.delete('/students/:studentId/device', deleteStudentDeviceController);
 
 // 7. Teacher login
-app.post('/auth/login', teacherLogin);
+app.post('/auth/login', teacherLoginController);
 
 // 8. Teacher password recovery
-app.post('/auth/recover-password', teacherRecoverPassword);
+app.post('/auth/recover-password', recoverPasswordController);
 
 
 import { Request, Response, NextFunction } from 'express';
