@@ -67,7 +67,7 @@ export class CoreGateway {
   }
 
   async getEventFromQrToken(qrToken: string) {
-    return this.withRetry(() => this.client.get('/v1/events/by-qr', { params: { qr_token: qrToken } }));
+    return this.withRetry(() => this.client.get('/events/by-qr', { params: { qr_token: qrToken } }));
   }
 
   async createEvent(payload: {
@@ -78,5 +78,17 @@ export class CoreGateway {
     location: { latitude: number; longitude: number };
   }) {
     return this.withRetry(() => this.client.post('/events', payload));
+  }
+
+  async updateEvent(eventId: string, payload: {
+    start_time?: string;
+    end_time?: string;
+    status?: string; // active | closed | canceled
+  }) {
+    return this.withRetry(() => this.client.put(`/events/${eventId}`, payload));
+  }
+
+  async deleteEvent(eventId: string) {
+    return this.withRetry(() => this.client.delete(`/events/${eventId}`));
   }
 }

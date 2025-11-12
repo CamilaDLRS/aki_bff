@@ -112,6 +112,38 @@ components:
         recordedAt: { type: string, format: date-time }
 
 paths:
+  /health:
+    get:
+      summary: Health check
+      description: Returns service status and server time.
+      tags: [Meta]
+      responses:
+        '200':
+          description: Service healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string }
+                  time: { type: string, format: date-time }
+  /version:
+    get:
+      summary: Running version and key routes
+      description: Helps confirm deployed build contains new event PUT/DELETE routes.
+      tags: [Meta]
+      responses:
+        '200':
+          description: Version info
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version: { type: string }
+                  routes:
+                    type: array
+                    items: { type: string }
   /auth/login:
     post:
       summary: Teacher login
@@ -312,6 +344,76 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/AttendanceRecord'
+    put:
+      summary: Update an event (start/end/status)
+      description: |
+        Updates allowed fields of an event (startAt, endAt, status).
+        **Orchestration:** Core → `PUT /events/{eventId}`
+      tags: [Events]
+      parameters:
+        - $ref: '#/components/parameters/TeacherEmailHeader'
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                startAt:
+                  type: string
+                  format: date-time
+                endAt:
+                  type: string
+                  format: date-time
+                status:
+                  type: string
+                  enum: [scheduled, active, finished, closed, canceled]
+      responses:
+        '200':
+          description: Event updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '400':
+          description: Invalid payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Event not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete an event
+      description: |
+        Deletes an event if allowed (no constraints).
+        **Orchestration:** Core → `DELETE /events/{eventId}`
+      tags: [Events]
+      parameters:
+        - $ref: '#/components/parameters/TeacherEmailHeader'
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Event deleted
+        '409':
+          description: Conflict (cannot delete closed event or event with constraints)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /events/attendance:
     post:

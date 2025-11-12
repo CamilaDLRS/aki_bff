@@ -58,6 +58,8 @@ src/
 - `POST /events` - Create new event
 - `GET /events/:eventId` - Get event details with attendance
 - `GET /classes/:classId/events` - List class events
+- `PUT /events/:eventId` - Update an event (start/end/status)
+- `DELETE /events/:eventId` - Delete an event
 
 ### Classes
 - `GET /classes/:classId` - Get class details
@@ -80,6 +82,8 @@ src/
 | POST /events/{eventId}/attendance | Core: `POST /attendances` |
 | POST/DELETE /students/{studentId}/device | Personas: `PATCH /students/{id}` |
 | POST /events | Core: `POST /events` |
+| PUT /events/{eventId} | Core: `PUT /events/{eventId}` |
+| DELETE /events/{eventId} | Core: `DELETE /events/{eventId}` |
 
 ## Example Request/Response
 
@@ -165,6 +169,40 @@ Content-Type: application/json
 ```
 Response (201):
 ```
+
+### Update Event
+Request:
+```
+PUT /events/6741e1e93f8c2c5e8c1d0abc
+Content-Type: application/json
+
+{
+   "status": "closed",
+   "endAt": "2025-11-08T14:05:00Z"
+}
+```
+Response (200):
+```
+{
+   "id": "6741e1e93f8c2c5e8c1d0abc",
+   "classId": 42,
+   "teacherId": 9,
+   "startAt": "2025-11-08T13:00:00Z",
+   "endAt": "2025-11-08T14:05:00Z",
+   "status": "closed",
+   "location": { "latitude": -23.55052, "longitude": -46.633308 },
+   "qrToken": "eyJhbGciOi...",
+   "createdAt": "2025-11-08T12:55:00Z",
+   "updatedAt": "2025-11-08T13:50:00Z"
+}
+```
+
+### Delete Event
+Request:
+```
+DELETE /events/6741e1e93f8c2c5e8c1d0abc
+```
+Response (204): (no body)
 {
    "id": "6741e1e93f8c2c5e8c1d0abc",
    "classId": 42,

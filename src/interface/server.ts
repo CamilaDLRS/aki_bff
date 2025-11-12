@@ -14,7 +14,7 @@ app.use(swaggerRouter);
 
 // Import controllers from features
 import { listTeacherClassesController, getClassDetailsController } from '../features/classes';
-import { listClassEventsController, getEventDetailsController, createEventController } from '../features/events';
+import { listClassEventsController, getEventDetailsController, createEventController, updateEventController, deleteEventController } from '../features/events';
 import { registerAttendanceController } from '../features/attendance';
 import { deleteStudentDeviceController } from '../features/students';
 import { teacherLoginController, recoverPasswordController } from '../features/teachers';
@@ -34,6 +34,12 @@ app.get('/events/:eventId', getEventDetailsController);
 // 4b. Create event
 app.post('/events', createEventController);
 
+// 4c. Update event
+app.put('/events/:eventId', updateEventController);
+
+// 4d. Delete event
+app.delete('/events/:eventId', deleteEventController);
+
 // 5. Register attendance (no eventId in URL)
 app.post('/events/attendance', registerAttendanceController);
 
@@ -45,6 +51,23 @@ app.post('/auth/login', teacherLoginController);
 
 // 8. Teacher password recovery
 app.post('/auth/recover-password', recoverPasswordController);
+
+// Health & version endpoints (simple diagnostics)
+app.get('/health', (req: Request, res: Response) => {
+  res.json({ status: 'ok', time: new Date().toISOString() });
+});
+
+app.get('/version', (req: Request, res: Response) => {
+  res.json({
+    version: process.env.npm_package_version || 'dev',
+    routes: [
+      'GET /events/:eventId',
+      'POST /events',
+      'PUT /events/:eventId',
+      'DELETE /events/:eventId'
+    ]
+  });
+});
 
 
 import { Request, Response, NextFunction } from 'express';
@@ -58,4 +81,16 @@ console.info(`Using Personas URL: ${process.env.PERSONAS_URL}`);
 console.info(`Using Core URL: ${process.env.CORE_URL}`);
 app.listen(PORT, () => {
   console.info(`AKI! BFF running on port ${PORT}`);
+  // Dump registered routes (method + path) for deployment verification
+  const anyApp: any = app as any;
+  if (anyApp._router && anyApp._router.stack) {
+    const routes: string[] = [];
+    anyApp._router.stack.forEach((layer: any) => {
+      if (layer.route && layer.route.path) {
+        const methods = Object.keys(layer.route.methods).map(m => m.toUpperCase()).join(',');
+        routes.push(`${methods} ${layer.route.path}`);
+      }
+    });
+    console.info('Registered routes:', routes);
+  }
 });
