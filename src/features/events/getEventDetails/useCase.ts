@@ -35,12 +35,12 @@ export class GetEventDetailsUseCase {
       const attendanceList = attendanceRes.data.data || [];
 
       const studentsRes = await this.personasGateway.getClassStudents(e.class_id);
-      const students: StudentDTO[] = studentsRes.data.data || [];
+      const students = studentsRes.data.data || [];
 
       // Enrich attendance with student names and map fields
       const attendance = attendanceList.map((a: any) => ({
         studentId: a.student_id,
-        studentName: students.find(s => s.id === a.student_id)?.fullName || '',
+        studentName: students.find((s: { id: any; }) => s.id === a.student_id)?.full_name || '',
         status: a.status,
         recordedAt: a.timestamp,
       }));
