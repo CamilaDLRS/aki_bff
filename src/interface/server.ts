@@ -18,6 +18,7 @@ import { listClassEventsController, getEventDetailsController, createEventContro
 import { registerAttendanceController } from '../features/attendance';
 import { deleteStudentDeviceController } from '../features/students';
 import { teacherLoginController, recoverPasswordController } from '../features/teachers';
+import { sendMessageController } from '../features/teachers';
 
 // 1. List teacher's classes
 app.get('/teachers/:teacherEmail/classes', listTeacherClassesController);
@@ -51,6 +52,9 @@ app.post('/auth/login', teacherLoginController);
 
 // 8. Teacher password recovery
 app.post('/auth/recover-password', recoverPasswordController);
+
+// 9. Send message to institution
+app.post('/teachers/send-message', sendMessageController);
 
 // Health & version endpoints (simple diagnostics)
 app.get('/health', (req: Request, res: Response) => {
