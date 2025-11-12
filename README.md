@@ -1,180 +1,175 @@
-# AKI! BFF (Backend-for-Frontend)
+<div align="center">
+	<h1>AKI! BFF (Backend-for-Frontend)</h1>
+	<p>Backend de agregação entre serviços <strong>Personas</strong> e <strong>Core</strong>, estruturado em <em>Vertical Slice Architecture</em>.</p>
+</div>
 
-## 🏗️ Architecture: Vertical Slice
+## 👩‍💻 Equipe / Alunos
+| Nome |
+|------|
+| Camila Delarosa |
+| Dimitri Prudente Delinski |
+| Guilherme Belo |
+| Yasmin Carmona |
 
-This service aggregates data from the Personas and Core microservices following **Vertical Slice Architecture**. Each feature is organized independently with its own use case and controller.
+## 🏗️ Visão Geral da Arquitetura
+Adotamos <strong>Vertical Slice</strong>: cada capability (ex.: events, classes, attendance) encapsula seu controller + use case + DTOs específicos. Evita camadas horizontais anêmicas e reduz acoplamento transversal. Código compartilhado mínimo vive em `shared/`.
 
-### 📚 Documentation
-- 📖 **[Vertical Slice Architecture](./VERTICAL_SLICE_ARCHITECTURE.md)** - Architecture overview
-- 🔄 **[Migration Guide](./MIGRATION_GUIDE.md)** - What changed in the migration
-- ✅ **[Migration Complete](./MIGRATION_COMPLETE.md)** - Summary of completed work
-- 📊 **[Architecture Diagram](./ARCHITECTURE_DIAGRAM.md)** - Visual diagrams
-- 💡 **[Practical Examples](./PRACTICAL_EXAMPLES.md)** - How to add features
+### Objetivos da Arquitetura
+- Facilitar onboarding: localizar tudo de uma feature em um único lugar.
+- Minimizar impacto de mudanças: alterar um slice não exige tocar em outros.
+- Proteger limites: testes de arquitetura (TSArch) garantem que slices não se importam entre si.
 
-## 🚀 Quick Start
+### Camadas Lógicas
+| Camada | Responsabilidade | Local |
+|--------|------------------|-------|
+| Interface (HTTP) | Boot Express, registra rotas | `src/interface/server.ts` |
+| Feature Slice | Orquestra caso de uso e entrada HTTP | `src/features/<domínio>/<feature>/` |
+| Use Case | Regras e coordenação de gateways | `useCase.ts` em cada slice |
+| Gateways | Comunicação externa (HTTP) | `src/shared/infrastructure/gateways` |
+| Shared | Tipos, logger e utilidades | `src/shared` |
 
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
-2. Configure environment variables in `.env`:
-   ```env
-   PERSONAS_URL=http://localhost:3002
-   CORE_URL=http://localhost:3001
-   PORT=3000
-   ```
-3. Start the server:
-   ```bash
-   npm run build && npm start
-   ```
+### Regras (Convenções)
+1. Um slice não importa código de outro slice.
+2. Use cases não importam controllers.
+3. `shared/` não referencia `features/`.
+4. Gateways são o único lugar com chamadas HTTP externas.
+5. Controllers somente traduzem HTTP ↔ uso do use case.
 
-## 📁 Project Structure
+Estas regras são validadas automaticamente (ver seção Testes de Arquitetura).
 
+## 📁 Estrutura Atual
 ```
 src/
-├── features/              # Features organized by domain
-│   ├── attendance/        # Attendance management
-│   ├── events/           # Event management
-│   ├── classes/          # Class management
-│   ├── students/         # Student management
-│   └── teachers/         # Teacher management
-│
-├── shared/               # Shared code
-│   ├── domain/          # DTOs and domain entities
-│   ├── infrastructure/  # Gateways, middleware
-│   └── logger/          # Logging utility
-│
-└── interface/           # HTTP layer
-    ├── server.ts       # Express server
-    └── swagger.ts      # API documentation
+	features/
+		attendance/
+		events/
+		classes/
+		students/
+		teachers/
+	shared/
+		dto.ts
+		logger/
+			index.ts
+		infrastructure/
+			gateways/
+				CoreGateway.ts
+				PersonasGateway.ts
+	interface/
+		server.ts
+		swagger.ts
 ```
 
-## 🎯 Features
+## 🔄 Migração para Vertical Slice
+Antes: mistura de pastas `app/usecases`, `core/`, `interface/controllers` (arquitetura em camadas duplicada).
+Depois: conteúdos migrados para `features/*` e diretórios legados removidos fisicamente. Restaram apenas stubs temporários que foram eliminados no processo de limpeza.
 
-### Attendance
-- `POST /events/attendance` - Register student attendance
+Benefícios observados:
+- Remoção de duplicação de gateways/logger.
+- Imports mais curtos via `tsconfig` paths.
+- Testes de arquitetura garantindo isolamento.
 
-### Events
-- `POST /events` - Create new event
-- `GET /events/:eventId` - Get event details with attendance
-- `GET /classes/:classId/events` - List class events
-
-### Classes
-- `GET /classes/:classId` - Get class details
-- `GET /teachers/:teacherEmail/classes` - List teacher's classes
-
-### Students
-- `DELETE /students/:studentId/device` - Remove device association
-
-### Teachers
-- `POST /auth/login` - Teacher login
-- `POST /auth/recover-password` - Password recovery
-
-## Endpoint Mapping
-| BFF Endpoint | Personas/Core Calls |
-|--------------|--------------------|
-| GET /teachers/{teacherEmail}/classes | Personas: `/teachers/{email}/classes` |
-| GET /classes/{classId} | Personas: `/classes/{classId}`<br>Core: `/events?class_id={classId}&size=5` |
-| GET /classes/{classId}/events | Core: `/events?class_id={classId}` |
-| GET /events/{eventId} | Core: `/events/{eventId}`<br>Core: `/attendances?event_id={eventId}`<br>Personas: `/classes/{classId}/students` |
-| POST /events/{eventId}/attendance | Core: `POST /attendances` |
-| POST/DELETE /students/{studentId}/device | Personas: `PATCH /students/{id}` |
-| POST /events | Core: `POST /events` |
-
-## Example Request/Response
-
-### List Teacher's Classes
-**Request:**
-```
-GET /teachers/jane.doe@aki.example/classes
-X-Teacher-Email: jane.doe@aki.example
-```
-**Response:**
-```
-[
-  {
-    "id": 1,
-    "code": "MATH101",
-    "name": "Mathematics 101",
-    "teachers": [...],
-    "students": [...]
-  },
-  ...
-]
-```
-
-## Testing
-Run unit tests:
+## 🔍 Testes de Arquitetura (TSArch)
+Executados via:
 ```bash
-npm test
+npm run test:arch
 ```
+Regras avaliadas:
+- Independência entre slices.
+- Ausência de ciclos internos em cada slice.
+- Controllers não importam outros controllers.
+- Use cases não importam controllers.
+- Shared não depende de features.
+- Interface não depende de diretórios deprecados (`app/`, `core/`).
 
-## 🐳 Docker
-Build and run with Docker Compose:
-```bash
-docker-compose up --build
-```
+## 🚀 Executando o Projeto
+1. Instale dependências:
+	 ```bash
+	 npm install
+	 ```
+2. Crie `.env` (se necessário):
+	 ```env
+	 CORE_URL=http://localhost:3001
+	 PERSONAS_URL=http://localhost:3002
+	 PORT=3000
+	 ```
+3. Build & start:
+	 ```bash
+	 npm run build && npm start
+	 ```
+4. Desenvolvimento hot-reload:
+	 ```bash
+	 npm run dev
+	 ```
 
-## 📝 API Documentation
+Se os serviços externos não estiverem rodando, endpoints que dependem deles responderão 503 (gateway mapeia ECONNREFUSED).
 
-See the BFF OpenAPI spec in `bff.yaml` or access Swagger UI at `/api-docs` when the server is running.
+## 🧪 Testes
+| Tipo | Comando |
+|------|---------|
+| Arquitetura | `npm run test:arch` |
 
-## 🔧 Adding a New Feature
+Adicionar testes unitários funcionais (ex.: Jest) segue padrão `tests/`.
 
-1. Create feature directory: `src/features/{domain}/{featureName}/`
-2. Create `useCase.ts` with business logic
-3. Create `controller.ts` with HTTP handling
-4. Export in `src/features/{domain}/index.ts`
-5. Register route in `src/interface/server.ts`
+## 🧱 Endpoints Principais
+| Recurso | Método & Rota | Descrição |
+|---------|---------------|-----------|
+| Classes | GET `/teachers/:teacherEmail/classes` | Lista classes do professor |
+| Classes | GET `/classes/:classId` | Detalhes da turma + eventos recentes |
+| Eventos | GET `/classes/:classId/events` | Lista eventos da turma |
+| Eventos | GET `/events/:eventId` | Detalhes + presença |
+| Eventos | POST `/events` | Cria evento |
+| Attendance | POST `/events/attendance` | Registra presença (QR / device) |
+| Students | DELETE `/students/:studentId/device` | Remove vínculo de dispositivo |
+| Teachers | POST `/auth/login` | Login docente |
+| Teachers | POST `/auth/recover-password` | Recuperação de senha |
 
-See **[Practical Examples](./PRACTICAL_EXAMPLES.md)** for detailed guides.
-
-## 🏛️ Architecture Principles
-
-- **Vertical Slice**: Features organized by business capability
-- **Single Responsibility**: Each file has one clear purpose
-- **Low Coupling**: Features are independent
-- **High Cohesion**: Related code stays together
-
-## 🤝 Contributing
-
-When adding new features:
-- Follow the existing structure
-- Keep business logic in use cases
-- Keep HTTP concerns in controllers
-- Share common code in `shared/`
-
----
-
-**Version**: 2.0.0 (Vertical Slice Architecture)  
-**Last Updated**: November 10, 2025
-
-### Create Event
+## 🧪 Exemplo (Criar Evento)
 Request:
-```
+```http
 POST /events
 Content-Type: application/json
-
 {
-   "classId": 42,
-   "teacherId": 9,
-   "startAt": "2025-11-08T13:00:00Z",
-   "endAt": "2025-11-08T14:00:00Z",
-   "location": { "latitude": -23.55052, "longitude": -46.633308 }
+	"classId": 42,
+	"teacherId": 9,
+	"startAt": "2025-11-08T13:00:00Z",
+	"endAt": "2025-11-08T14:00:00Z",
+	"location": { "latitude": -23.55052, "longitude": -46.633308 }
 }
 ```
 Response (201):
-```
+```json
 {
-   "id": "6741e1e93f8c2c5e8c1d0abc",
-   "classId": 42,
-   "teacherId": 9,
-   "startAt": "2025-11-08T13:00:00Z",
-   "endAt": "2025-11-08T14:00:00Z",
-   "status": "active",
-   "location": { "latitude": -23.55052, "longitude": -46.633308 },
-   "qrToken": "eyJhbGciOi...",
-   "createdAt": "2025-11-08T12:55:00Z",
-   "updatedAt": "2025-11-08T12:55:00Z"
+	"id": "<event-id>",
+	"classId": 42,
+	"teacherId": 9,
+	"startAt": "2025-11-08T13:00:00Z",
+	"endAt": "2025-11-08T14:00:00Z",
+	"status": "active",
+	"location": { "latitude": -23.55052, "longitude": -46.633308 },
+	"qrToken": "<qr-token>",
+	"createdAt": "2025-11-08T12:55:00Z",
+	"updatedAt": "2025-11-08T12:55:00Z"
 }
 ```
+
+## 🧭 Convenções de Código
+- `useCase.ts`: deve conter apenas lógica de orquestração/regra, sem código HTTP.
+- `controller.ts`: valida entrada → chama use case → formata saída.
+- `gateway`: única camada que chama serviços externos (Axios). Retries e mapeamento de indisponibilidade para 503.
+- DTOs cross-slice mínimos em `shared/dto.ts`.
+
+## 🧹 Diretórios Legados
+Os diretórios `app/`, `core/` e `interface/controllers/` foram substituídos pela organização em `features/`. Arquivos antigos foram removidos para evitar confusão e asserções de arquitetura garantem que não retornem.
+
+## 🔐 Próximos Melhoramentos (Roadmap)
+- Mocks embutidos para `Core` e `Personas` (dev offline).
+- Adicionar testes unitários / integração por slice.
+- Circuit breaker básico nos gateways.
+
+## 📄 Licença
+Uso acadêmico / interno. Ajustar conforme necessidade institucional.
+
+---
+Versão: 2.0.0  
+Última atualização: 11 Nov 2025
+
